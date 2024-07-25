@@ -1,0 +1,56 @@
+version: '3.4'
+
+services:
+  order:
+    image: ${DOCKER_REGISTRY-}order
+    build:
+      context: .
+      dockerfile: Order/Dockerfile
+    networks: 
+      - eshop
+    ports:
+      - 5101:5101
+    environment:
+      - Otlp__Endpoint=http://otel:4317
+      - OTEL_METRIC_EXPORT_INTERVAL=5000  # so we don't have to wait 60s for metrics
+    depends_on:
+      - otel
+  product:
+    image: ${DOCKER_REGISTRY-}product
+    build:
+      context: .
+      dockerfile: Product/Dockerfile
+    networks: 
+      - eshop
+    ports:
+       - 5102:5102
+    environment:
+      - Otlp__Endpoint=http://otel:4317
+      - OTEL_METRIC_EXPORT_INTERVAL=5000  # so we don't have to wait 60s for metrics
+    depends_on:
+      - otel
+  customer:
+    image: ${DOCKER_REGISTRY-}customer
+    build:
+      context: .
+      dockerfile: Customer/Dockerfile
+    networks: 
+      - eshop
+    ports:
+       - 5103:5103
+    environment:
+      - Otlp__Endpoint=http://otel:4317
+      - OTEL_METRIC_EXPORT_INTERVAL=5000  # so we don't have to wait 60s for metrics
+    depends_on:
+      - otel
+  otel:
+    image: grafana/otel-lgtm
+    networks:
+      - eshop
+    ports:
+      - 3000:3000
+      - 4317:4317
+      - 4318:4318
+networks:
+  eshop:
+    driver: bridge
